@@ -25,7 +25,7 @@ GRAPH_NAME = 'karate'
 EP_TIMESTEPS = 20  # Number of steps in the experiment.
 
 ########## PPO Train Parameters ##########
-TRAIN_TIMESTEPS = 10_000_000  # Total train time
+TRAIN_TIMESTEPS = 10_000  # Total train time
 LEARNING_RATE = 0.00001
 POLICY_KWARGS = dict(activation_fn=torch.nn.ReLU,
                      net_arch = [512, 512, dict(vf=[512, 256], pi=[512, 256])])
