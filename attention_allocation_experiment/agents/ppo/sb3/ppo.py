@@ -14,6 +14,8 @@ from stable_baselines3.common.utils import explained_variance, get_schedule_fn
 from attention_allocation_experiment.config import REGULARIZE_ADVANTAGE, BETA_0, BETA_1, BETA_2, OMEGA
 from attention_allocation_experiment.agents.ppo.sb3.on_policy_algorithm import OnPolicyAlgorithm
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 class PPO(OnPolicyAlgorithm):
     """
@@ -209,15 +211,15 @@ class PPO(OnPolicyAlgorithm):
                 if REGULARIZE_ADVANTAGE:
                     # Compute value-thresholding (vt) term as part of Eq. 3 from the paper
                     vt_term = torch.min(
-                        torch.zeros(rollout_data.deltas.shape[0]).cuda(),
+                        torch.zeros(rollout_data.deltas.shape[0]).to(device),
                         -rollout_data.deltas + torch.tensor(OMEGA, dtype=torch.float32)
                     )
 
                     # Compute decrease-in-violation (div) term as part of Eq. 3 from the paper
-                    div_cond = torch.where(rollout_data.deltas > torch.tensor(OMEGA, dtype=torch.float32).cuda(),
-                                                 torch.tensor(1, dtype=torch.float32).cuda(),
-                                                 torch.tensor(0, dtype=torch.float32).cuda())
-                    div_term = torch.min(torch.zeros(rollout_data.delta_deltas.shape[0]).cuda(),
+                    div_cond = torch.where(rollout_data.deltas > torch.tensor(OMEGA, dtype=torch.float32).to(device),
+                                                 torch.tensor(1, dtype=torch.float32).to(device),
+                                                 torch.tensor(0, dtype=torch.float32).to(device))
+                    div_term = torch.min(torch.zeros(rollout_data.delta_deltas.shape[0]).to(device),
                                          -div_cond * rollout_data.delta_deltas)
 
                     # Bring the 3 terms to scale for numerical stability

@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, '..')
+
 import argparse
 import copy
 import random
@@ -25,7 +28,7 @@ from graphing.plot_att_all_over_time_across_agents import plot_att_all_over_time
 from graphing.plot_deltas_over_time_across_agents import plot_deltas_over_time_across_agents
 from graphing.plot_incidents_missed_over_time_across_agents import plot_incidents_missed_over_time_across_agents
 from graphing.plot_incidents_seen_over_time_across_agents import plot_incidents_seen_over_time_across_agents
-from graphing.plot_rews import plot_rets
+from graphing.plot_rews import plot_rews
 from graphing.plot_rew_over_time_across_agents import plot_rew_over_time_across_agents
 from graphing.plot_rew_terms_over_time_across_agents import plot_rew_terms_over_time_across_agents
 from graphing.plot_true_rates_over_time_across_agents import plot_true_rates_over_time_across_agents
@@ -325,16 +328,16 @@ if __name__ == '__main__':
                      eval_path=args.eval_path)
 
         # Evaluate CPO agent
-        for name, model_path in CPO_EVAL_MODEL_PATHS.items():
-            agent = load_cpo_policy(model_path)
-            evaluate(env=CPOEnvWrapper(env=env, reward_fn=AttentionAllocationReward),
-                     agent=agent,
-                     num_eps=eval_eps,
-                     num_timesteps=eval_timesteps,
-                     name=name,
-                     seeds=seeds,
-                     eval_path=args.eval_path,
-                     algorithm='cpo')
+        # for name, model_path in CPO_EVAL_MODEL_PATHS.items():
+        #     agent = load_cpo_policy(model_path)
+        #     evaluate(env=CPOEnvWrapper(env=env, reward_fn=AttentionAllocationReward),
+        #              agent=agent,
+        #              num_eps=eval_eps,
+        #              num_timesteps=eval_timesteps,
+        #              name=name,
+        #              seeds=seeds,
+        #              eval_path=args.eval_path,
+        #              algorithm='cpo')
 
         # Next, Evaluate the greedy agent
         model_class = MLEGreedyAgent
