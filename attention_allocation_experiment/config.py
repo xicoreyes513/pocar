@@ -19,7 +19,7 @@ CPO_EVAL_MODEL_PATHS = {
 ########## Env Parameters ##########
 N_LOCATIONS = 5
 N_ATTENTION_UNITS = 6
-EP_TIMESTEPS = 200
+EP_TIMESTEPS = 1000 # bigger, more defined and smooth slop
 INCIDENT_RATES = [8, 6, 4, 3, 1.5]
 DYNAMIC_RATE = 0.1
 
