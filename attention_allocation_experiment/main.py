@@ -13,6 +13,13 @@ import numpy as np
 from sympy import E
 import torch
 import tqdm
+import pandas
+
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
+# file_writer = tf.summary.FileWriter('/path/to/logs', sess.graph)
+
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
@@ -42,6 +49,9 @@ from attention_allocation_experiment.agents.cpo.torch_utils.torch_utils import g
 from attention_allocation_experiment.agents.cpo.cpo_wrapper_env import CPOEnvWrapper
 from attention_allocation_experiment.agents.cpo.simulators import SinglePathSimulator
 from attention_allocation_experiment.agents.cpo.cpo import CPO
+
+
+
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -147,6 +157,14 @@ def train(train_timesteps, env):
 
     # Once we finish learning, plot the returns over time and save into the experiments directory
     plot_rews(EXP_DIR)
+    df = pandas.read_csv(f'./{EXP_DIR}/progress.csv')
+    xs = df['time/total_timesteps']
+    ys = df['rollout/ep_rew_mean']
+    
+    for i in range(xs.size):
+        writer.add_scalar('Reward vs ep', ys[i], xs[i])
+    
+    writer.close()
 
 def evaluate(env, agent, num_eps, num_timesteps, name, seeds, eval_path, algorithm=None):
     print(f'\nEvaluating {name}!\n')
@@ -232,6 +250,7 @@ def evaluate(env, agent, num_eps, num_timesteps, name, seeds, eval_path, algorit
         eval_data['tot_incidents_missed'][ep] = ep_data['ep_incidents_occurred'] - ep_data['ep_incidents_seen']
         eval_data['tot_rew_infos'].append(copy.deepcopy(ep_data['rew_infos']))
 
+        
     Path(f'{eval_path}/{name}/').mkdir(parents=True, exist_ok=True)
     for key in eval_data.keys():
         np.save(f'{eval_path}/{name}/{key}.npy', eval_data[key])
@@ -256,6 +275,25 @@ def display_eval_results(eval_dir):
     plot_true_rates_over_time_across_agents(tot_eval_data)
     plot_deltas_over_time_across_agents(tot_eval_data)
     plot_rew_terms_over_time_across_agents(tot_eval_data)
+
+    # Delta over time ################################################################
+    agent_names = list(tot_eval_data.keys())
+
+    aggregated_tot_ep_deltas = [tot_eval_data[name]['tot_deltas'] for name in agent_names]  # (num_agents, num_eps, num timesteps)
+    
+    
+    timesteps = list(range(len(aggregated_tot_ep_deltas[0][0])))
+    num_eps = len(aggregated_tot_ep_deltas[0])
+    means = np.mean(aggregated_tot_ep_deltas, axis=1)
+    
+    for i in range(len(agent_names)):
+        for j in range(len(timesteps)):
+            writer.add_scalars("Delta Over Time", {
+                
+                agent_names[i]: means[i][j],
+            }, j)
+    writer.close()
+    # Delta over time ################################################################
 
 
 if __name__ == '__main__':
@@ -287,7 +325,7 @@ if __name__ == '__main__':
             train_cpo(env_list)
         else:
             train(train_timesteps=TRAIN_TIMESTEPS, env=env)
-        plot_rets(exp_path=EXP_DIR, save_png=True)
+        plot_rews(exp_path=EXP_DIR, save_png=True)
 
     if args.show_train_progress:
         plot_rews(exp_path=EXP_DIR, save_png=False)
